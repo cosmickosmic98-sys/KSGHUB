@@ -14,8 +14,10 @@ local Window = Rayfield:CreateWindow({
    DisableRayfieldPrompts = false,
    DisableBuildWarnings = false,
 
-      ConfigurationSaving = {
-      Enabled = false,
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "LazixRobloxx",
+      FileName = "Ksg script"
    },
 
 
@@ -43,7 +45,7 @@ local player = Players.LocalPlayer
 -- Walkspeed Settings
 
 local walkSpeedEnabled = false
-local walkSpeedValue = 32
+local walkSpeedValue = 16
 
 local originalWalkSpeed = nil
 
@@ -53,7 +55,7 @@ local speedConnection
 -- JumpPower Settings
 
 local jumpPowerEnabled = false
-local jumpPowerValue = 100
+local jumpPowerValue = 50
 
 local originalJumpPower = nil
 
@@ -68,7 +70,7 @@ local hitboxX = 4.521
 local hitboxY = 5.73
 local hitboxZ = 2.398
 
-local hitboxTransparency = 0
+local hitboxTransparency = 1
 
 local tackleHitboxEnabled = false
 
@@ -76,7 +78,7 @@ local tackleHitboxX = 2.57
 local tackleHitboxY = 5.73
 local tackleHitboxZ = 2.064
 
-local tackleHitboxTransparency = 0
+local tackleHitboxTransparency = 1
 
 -- Goal Hitbox Settings
 
@@ -872,7 +874,7 @@ MiscTab:CreateInput({
 
     CurrentValue = tostring(walkSpeedValue),
 
-    PlaceholderText = "32",
+    PlaceholderText = "16",
 
     RemoveTextAfterFocusLost = false,
 
@@ -921,7 +923,7 @@ MiscTab:CreateInput({
 
     CurrentValue = tostring(jumpPowerValue),
 
-    PlaceholderText = "100",
+    PlaceholderText = "50",
 
     RemoveTextAfterFocusLost = false,
 
@@ -1111,7 +1113,7 @@ HitboxTab:CreateInput({
 
    CurrentValue = tostring(hitboxTransparency),
 
-   PlaceholderText = "0",
+   PlaceholderText = "1",
 
    RemoveTextAfterFocusLost = false,
 
@@ -1249,7 +1251,7 @@ HitboxTab:CreateInput({
 
    CurrentValue = tostring(tackleHitboxTransparency),
 
-   PlaceholderText = "0",
+   PlaceholderText = "1",
 
    RemoveTextAfterFocusLost = false,
 
@@ -1721,498 +1723,30 @@ local SettingsTab = Window:CreateTab("Settings", "settings")
 
 local Section = SettingsTab:CreateSection("Settings")
 
--- =========================================================
--- KSG HUB CONFIG MANAGER
--- =========================================================
-
-local HttpService = game:GetService("HttpService")
-
-local CONFIG_FOLDER = "LazixRobloxx"
-local CONFIG_FILE = CONFIG_FOLDER .. "/KSG_ConfigSlots.json"
-
-local configSlots = {
-    [1] = {
-        Name = "Config 1",
-        Data = nil
-    },
-
-    [2] = {
-        Name = "Config 2",
-        Data = nil
-    },
-
-    [3] = {
-        Name = "Config 3",
-        Data = nil
-    }
-}
-
-local selectedConfigSlot = 1
-
--- ---------------------------------------------------------
--- Filesystem
--- ---------------------------------------------------------
-
-if not isfolder(CONFIG_FOLDER) then
-    makefolder(CONFIG_FOLDER)
-end
-
-local function saveConfigDatabase()
-
-    local success, encoded = pcall(function()
-        return HttpService:JSONEncode(configSlots)
-    end)
-
-    if success then
-        writefile(CONFIG_FILE, encoded)
-        return true
-    end
-
-    return false
-end
-
-
-local function loadConfigDatabase()
-
-    if not isfile(CONFIG_FILE) then
-        return
-    end
-
-    local success, content = pcall(function()
-        return readfile(CONFIG_FILE)
-    end)
-
-    if not success then
-        return
-    end
-
-    local decodeSuccess, data = pcall(function()
-        return HttpService:JSONDecode(content)
-    end)
-
-    if not decodeSuccess or type(data) ~= "table" then
-        return
-    end
-
-    for i = 1, 3 do
-
-        if data[tostring(i)] then
-
-            configSlots[i].Name =
-                data[tostring(i)].Name or ("Config " .. i)
-
-            configSlots[i].Data =
-                data[tostring(i)].Data
-
-        elseif data[i] then
-
-            configSlots[i].Name =
-                data[i].Name or ("Config " .. i)
-
-            configSlots[i].Data =
-                data[i].Data
-
-        end
-
-    end
-
-end
-
-
-loadConfigDatabase()
-
-
--- ---------------------------------------------------------
--- Get values from Rayfield
--- ---------------------------------------------------------
-
-local function getCurrentConfig()
-
-    local data = {}
-
-    for flagName, element in pairs(Rayfield.Flags) do
-
-        if element.Type == "ColorPicker" then
-
-            data[flagName] = {
-                R = element.Color.R,
-                G = element.Color.G,
-                B = element.Color.B
-            }
-
-        elseif element.CurrentValue ~= nil then
-
-            data[flagName] = element.CurrentValue
-
-        elseif element.CurrentKeybind ~= nil then
-
-            data[flagName] = element.CurrentKeybind
-
-        elseif element.CurrentOption ~= nil then
-
-            data[flagName] = element.CurrentOption
-
-        end
-
-    end
-
-    return data
-
-end
-
-
--- ---------------------------------------------------------
--- Apply saved values
--- ---------------------------------------------------------
-
-local function applyConfig(data)
-
-    if type(data) ~= "table" then
-        return false
-    end
-
-    for flagName, value in pairs(data) do
-
-        local element = Rayfield.Flags[flagName]
-
-        if element then
-
-            pcall(function()
-
-                if element.Type == "ColorPicker" then
-
-                    if type(value) == "table" then
-
-                        element:Set(
-                            Color3.fromRGB(
-                                value.R,
-                                value.G,
-                                value.B
-                            )
-                        )
-
-                    end
-
-                elseif element.Type == "Dropdown" then
-
-                    if type(value) == "table" then
-                        element:Set(value)
-                    else
-                        element:Set({value})
-                    end
-
-                else
-
-                    element:Set(value)
-
-                end
-
-            end)
-
-        end
-
-    end
-
-    return true
-
-end
-
-
--- ---------------------------------------------------------
--- Default values
--- ---------------------------------------------------------
-
-local DEFAULT_CONFIG = {
-
-    BallTP = false,
-    BallTrajectoryToggle = false,
-
-    WalkspeedToggle = false,
-    WalkspeedValue = "16",
-
-    JumpPowerToggle = false,
-    JumpPowerValue = "50",
-
-    CameraMaxZoomToggle = false,
-    CameraMaxZoomValue = "20",
-
-    HitboxToggle = false,
-    HitboxX = "4.521",
-    HitboxY = "5.73",
-    HitboxZ = "2.398",
-    HitboxTransparency = "1",
-
-    TackleHitboxToggle = false,
-    TackleHitboxX = "2.57",
-    TackleHitboxY = "5.73",
-    TackleHitboxZ = "2.064",
-    TackleHitboxTransparency = "1",
-
-    HomeGoalHitboxToggle = false,
-    HomeGoalHitboxX = "31.327",
-    HomeGoalHitboxY = "11.278",
-    HomeGoalHitboxZ = "8.289",
-    HomeGoalTransparency = "1",
-
-    AwayGoalHitboxToggle = false,
-    AwayGoalHitboxX = "31.327",
-    AwayGoalHitboxY = "11.278",
-    AwayGoalHitboxZ = "8.289",
-    AwayGoalTransparency = "1",
-
-    DribblesToggle = false,
-    DribbleDropdown = {"Float"},
-
-    SideDribblesToggle = false,
-    SideDribbleDropdown = {"Flair Spin"},
-
-    BallThemeToggle = false,
-    BallThemeDropdown = {"Snowball"},
-
-    BallTPKeybind = "LeftControl"
-}
-
-
-local function resetToDefaults()
-
-    applyConfig(DEFAULT_CONFIG)
-
-end
-
-
--- ---------------------------------------------------------
--- Config dropdown helpers
--- ---------------------------------------------------------
-
-local ConfigDropdown
-
-
-local function getConfigNames()
-
-    return {
-        configSlots[1].Name,
-        configSlots[2].Name,
-        configSlots[3].Name
-    }
-
-end
-
-
-local function refreshConfigDropdown()
-
-    if not ConfigDropdown then
-        return
-    end
-
-    ConfigDropdown:Refresh(getConfigNames())
-
-    ConfigDropdown:Set({
-        configSlots[selectedConfigSlot].Name
-    })
-
-end
-
-
-local function getSelectedSlot()
-
-    return selectedConfigSlot
-
-end
-
-
--- ---------------------------------------------------------
--- Save
--- ---------------------------------------------------------
-
-local function saveSelectedConfig(customName)
-
-    local slot = getSelectedSlot()
-
-    customName = tostring(customName or ""):match("^%s*(.-)%s*$")
-
-    if customName == "" then
-        customName = "Config " .. slot
-    end
-
-    -- Nie pozwalaj na identyczne nazwy dwóch configów
-    for i = 1, 3 do
-
-        if i ~= slot
-        and configSlots[i].Name:lower() == customName:lower() then
-
-            Rayfield:Notify({
-                Title = "Config",
-                Content = "Ta nazwa jest już używana.",
-                Duration = 3
-            })
-
-            return false
-
-        end
-
-    end
-
-
-    configSlots[slot].Name = customName
-    configSlots[slot].Data = getCurrentConfig()
-
-    if not saveConfigDatabase() then
-
-        Rayfield:Notify({
-            Title = "Config",
-            Content = "Nie udało się zapisać configu.",
-            Duration = 3
-        })
-
-        return false
-
-    end
-
-
-    refreshConfigDropdown()
-
-    Rayfield:Notify({
-        Title = "Config",
-        Content = customName .. " został zapisany.",
-        Duration = 3
-    })
-
-    return true
-
-end
-
-
--- ---------------------------------------------------------
--- Load
--- ---------------------------------------------------------
-
-local function loadSelectedConfig()
-
-    local slot = getSelectedSlot()
-    local config = configSlots[slot]
-
-    if not config.Data then
-
-        Rayfield:Notify({
-            Title = "Config",
-            Content = config.Name .. " nie zawiera zapisanego configu.",
-            Duration = 3
-        })
-
-        return false
-
-    end
-
-
-    applyConfig(config.Data)
-
-    Rayfield:Notify({
-        Title = "Config",
-        Content = config.Name .. " został wczytany.",
-        Duration = 3
-    })
-
-    return true
-
-end
-
-
--- ---------------------------------------------------------
--- Delete
--- ---------------------------------------------------------
-
-local function deleteSelectedConfig()
-
-    local slot = getSelectedSlot()
-
-    -- Usuwamy dane
-    configSlots[slot].Data = nil
-
-    -- Przywracamy domyślną nazwę
-    configSlots[slot].Name = "Config " .. slot
-
-    -- Resetujemy aktualne ustawienia
-    resetToDefaults()
-
-    -- Zapisujemy zmianę
-    saveConfigDatabase()
-
-    -- Odświeżamy dropdown
-    refreshConfigDropdown()
-
-    Rayfield:Notify({
-        Title = "Config",
-        Content = "Config " .. slot .. " został usunięty i zresetowany.",
-        Duration = 3
-    })
-
-end
-
 -- Config Tab
 
 local ConfigTab = Window:CreateTab("Config", "save")
 
 local ConfigSection = ConfigTab:CreateSection("Configuration")
 
--- Config slot dropdown
 
-ConfigDropdown = ConfigTab:CreateDropdown({
+ConfigTab:CreateButton({
 
-    Name = "Select Config",
+    Name = "Save Config",
 
-    Options = getConfigNames(),
+    Callback = function()
 
-    CurrentOption = {
-        configSlots[selectedConfigSlot].Name
-    },
+        Rayfield:Notify({
 
-    MultipleOptions = false,
+            Title = "Config",
 
-    Flag = "ConfigSlotDropdown",
+            Content = "Configuration saved",
 
-    Callback = function(Options)
+            Duration = 3,
 
-        local selectedName = Options[1]
+        })
 
-        for i = 1, 3 do
-
-            if configSlots[i].Name == selectedName then
-
-                selectedConfigSlot = i
-                break
-
-            end
-
-        end
-
-    end,
-
-})
-
-
--- Save Config
-
-ConfigTab:CreateInput({
-
-    Name = "Config Name",
-
-    CurrentValue = "",
-
-    PlaceholderText = "Config name",
-
-    RemoveTextAfterFocusLost = false,
-
-    Flag = "ConfigNameInput",
-
-    Callback = function(Text)
-
-        local name = tostring(Text or "")
-
-        if name:gsub("%s+", "") ~= "" then
-
-            saveSelectedConfig(name)
-
-        end
+        Rayfield:SaveConfiguration()
 
     end,
 
@@ -2225,7 +1759,17 @@ ConfigTab:CreateButton({
 
     Callback = function()
 
-        loadSelectedConfig()
+        Rayfield:LoadConfiguration()
+
+        Rayfield:Notify({
+
+            Title = "Config",
+
+            Content = "Configuration loaded",
+
+            Duration = 3,
+
+        })
 
     end,
 
@@ -2238,7 +1782,17 @@ ConfigTab:CreateButton({
 
     Callback = function()
 
-        deleteSelectedConfig()
+        Rayfield:DeleteConfiguration()
+
+        Rayfield:Notify({
+
+            Title = "Config",
+
+            Content = "Configuration deleted",
+
+            Duration = 3,
+
+        })
 
     end,
 
@@ -2309,6 +1863,18 @@ end)
 
 
 Rayfield:LoadConfiguration()
+
+Rayfield:Notify({
+
+   Title = "LazixRobloxx",
+
+   Content = "Ksg hub loaded",
+
+   Duration = 6.5,
+
+   Image = 4483362458,
+
+})
 
 Rayfield:Notify({
 
