@@ -1696,7 +1696,17 @@ CosmeticsTab:CreateDropdown({
         "Disco",
         "8-Bit",
         "Void Singularity Soccer Ball",
-        "Riley's Football"
+        "Riley's Football",
+        "Atom Ball",
+        "Laser Ball",
+        "ESP Soccer Ball",
+        "Champion Ball",
+        "BvB Ball",
+        "Purple BVB Soccer Ball",
+        "Comet",
+        "Influencer Ball",
+        "WC26 Golden Soccer Ball",
+        "adidas Trionda Finals Pro Ball"
     },
 
     CurrentOption = {
