@@ -1706,6 +1706,7 @@ CosmeticsTab:CreateDropdown({
         "Comet",
         "Influencer Ball",
         "WC26 Golden Soccer Ball",
+         "Crimson Flame",
         "adidas Trionda Finals Pro Ball"
     },
 
