@@ -1180,7 +1180,9 @@ CosmeticsTab:CreateDropdown({
         "Influencer Ball",
         "WC26 Golden Soccer Ball",
         "Crimson Flame",
-        "adidas Trionda Finals Pro Ball"
+        "adidas Trionda Finals Pro Ball",
+         "Reaper Ball",
+         "Halloween Pumpkin Ball"
     },
     CurrentOption = {
         "Snowball"
